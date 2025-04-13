@@ -3,7 +3,7 @@ import { AppBar, Toolbar, Typography, IconButton, useMediaQuery, useTheme} from 
 import { Menu as MenuIcon, Logout as LogoutIcon }  from '@mui/icons-material'
 import { useAuth } from "../context/AuthContext";
 
-const Navbar = ( {onMenuClick}) => {
+const Navbar = ({onMenuClick}) => {
     const { user, logout } = useAuth();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));

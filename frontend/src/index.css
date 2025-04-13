@@ -1,7 +1,13 @@
-body {
+/* Reset */
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   font-family: Arial, sans-serif;
-  background-color: gray;
+  /* background-color: gray; */
 }
 
 .login-container, .register-container {
@@ -36,5 +42,31 @@ button {
 .error {
   color: red;
   margin: 5px 0;
+}
+
+/* ajustes para o navbar */
+.MuiAppBar-root {
+  background-color: #1976d2 !important;
+  box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2);
+}
+
+.MuiTypography-subtitle1 {
+  font-weight: 400 !important;
+  opacity: 0.9;
+}
+
+/* Ajustes para card */
+.MuiCard-root {
+  transition: transform 0.2s ease-in-out;
+}
+
+.MuitCard-root:hover {
+  transform: translate(-2px)
+}
+
+/* espaçamento entre columas */
+
+.MuiGrid-spacing-xs-3 > .MuiGrid-item {
+  padding: 12px;
 }
 

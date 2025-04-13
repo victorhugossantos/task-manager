@@ -1,82 +1,83 @@
-import React, {useEffect, useState} from "react";
-import { useAuth } from "../context/AuthContext";
-import { Box, ListItem, ListItemIcon, Toolbar, ListItemText, List, CssBaseline, AppBar, IconButton, Typography, DashboardIcon } from '@mui/material'
-import { MenuIcon } from '@mui/icons-material'
-
-const drawerWidth = 240;
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import { Box, CssBaseline, Grid, Toolbar, useMediaQuery, useTheme } from "@mui/material";
+import api from "../api/api";
+import Sidebar from "../components/Sidebar";
+import TaskColumn from "../components/TaskColumn";
 
 const Dashboard = () => {
-    const {user, logout} = useAuth();
-    const [tasks, setTasks] = useState([]);
-    const [newTask, setNewTask] = useState('');
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [tasks, setTasks] = useState({
+        'To Do': [],
+        'In Progress': [],
+        'Done': []
+    });
 
-    // Mock data
+    // buscar tarefas no backend
     useEffect(() => {
-        const mockTask = [
-            {id: 1, title: 'Projeto React', Status: 'To Do'},
-            {id: 2, title: 'Configurar  API', Status: 'To Do'}
-        ];
+        const fetchTasks = async () => {
+            try {
+                const response = await api.get('/tasks');
+                const organizedTasks = organizedTasksByStatus(response.data) // chama a função para organizar as tarefas por status
+                setTasks(organizedTasks)
+            } catch (error) {
+                console.error('Erro ao buscar tarefas: ', error)
+            }
+        };
+        fetchTasks();
+    }, [])
 
-        setTasks(mockTask);
-    }, []);
+     // função para organizar as tarefas por status*
+    const organizedTasksByStatus = (tasks) => {
+        return tasks.reduce((acc, task) => {
+            acc[task.status].push(task);
+            return acc;
+        }, { 'To Do': [], 'In Progress': [], 'Done': []})
+    }
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen)
-    };
+    // Adiciona tarefa no banco de dados via api
+    const handleAddTask = async (status, title) => {
+        try {
+            const newTask = {title, status};
+            const response = await api.post('/tasks', newTask);
+            setTasks(prev => ({
+                ...prev,
+                [status]: [...prev[status], response.data]
+            }));
 
-    const handleAddTask = () => {
-        if(newTask.trim()) {
-            setTasks([...tasks, { id: Date.now(), title: newTask, status: 'To Do'}]);
-            setNewTask('');
+        } catch (error){
+            console.error('Erro ao criar a tarefa: ', error)
         }
     };
 
-    const drawer = (
-        <div>
-            <Toolbar />
-                <List>
-                    <ListItem button>
-                        <ListItemIcon>
-                            <DashboardIcon />
-                        </ListItemIcon>
-                            <ListItemText primary="Dashboard"/>
-                    </ListItem>
-                </List>
-
-        </div>
-    );
-
     return (
-        <Box sx={{ display: 'flex'}}>
+        <Box sx={{display: 'flex'}}>
             <CssBaseline />
 
-            {/*AppBar*/}
+            <Navbar onMenuClick={() => setMobileOpen(!mobileOpen)}/>
 
-            <AppBar
-                position="fixed"
-                sx={{width: { sm: `calc(100% - ${drawerWidth}px)`}, ml: { sm: `${drawerWidth}px`}}}
-            >
+            <Sidebar width={240} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)}/>
 
-                <Toolbar>
-                    <IconButton
-                        color="inherit"
-                        edge="start"
-                        onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { sm: 'none'}}}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1}}>
-                        Bem-vindo, { user?.name}
-                    </Typography>
-                </Toolbar>
-
-            </AppBar>
-
+            <Box>
+                <Toolbar />
+                
+                <Grid container spacing={3}>
+                    {Object.entries(tasks).map(([status, tasks]) => {
+                        <Grid item xs={12} md={4} key={status}>
+                            <TaskColumn 
+                                title={status}
+                                tasks={tasks}
+                                onAddTask={handleAddTask}
+                                onTaskClick={(task) => console.log('Tarefa clicada: ', task)}
+                            />
+                        </Grid>
+                    })}
+                </Grid>
+            </Box>
         </Box>
     )
-
 }
 
-export default Dashboard
+export default Dashboard;
