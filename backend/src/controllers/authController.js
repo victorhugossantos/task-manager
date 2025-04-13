@@ -13,7 +13,14 @@ export const register = async (req, res) => {
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
+
+        if (!name || !email || !password) {
+            console.log('Usuario deixou de preencher os campos')
+            return res.status(400).json({error: 'Preencha todos os campos'})
+            
+        }
         if (existingUser.length > 0 ) {
+            console.log('Email já cadastrado')
             return res.status(409).json({error: 'Email já cadastrado'})
         }
 
